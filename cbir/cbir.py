@@ -23,22 +23,22 @@ router = APIRouter(prefix="/api")
 
 
 @router.get("/images/{image_id}")
-def get_image(image_id):
+def get_image():
     """Get an image given its ID from the database"""
 
 
 @router.delete("/images/{image_id}")
-def delete_image(image_id):
+def delete_image():
     """Delete an image from the database"""
 
 
 @router.post("/images/index")
-def index_image(body):
+def index_image():
     """Index the given image."""
 
 
 @router.post("/images/retrieve")
-def retrieve_image(body):
+def retrieve_image():
     "Retrieve the nearest images given a query image."
 
 

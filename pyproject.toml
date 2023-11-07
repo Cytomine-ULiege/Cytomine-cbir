@@ -5,11 +5,20 @@ description = ""
 authors = ["Ba Thien Le <ba.le@uliege.be>"]
 license = "Apache 2.0"
 readme = "README.md"
+repository = "https://github.com/Cytomine-ULiege/Cytomine-cbir"
+packages = [{include = "cbir"}]
 
 [tool.poetry.dependencies]
 python = "^3.9"
+faiss-gpu = "^1.7.2"
 fastapi = "^0.104.1"
+redis = "3.5.3"
+torch = {version = "^2.1.0+cu118", source = "torch-gpu"}
+torchvision = {version = "^0.16.0+cu118", source = "torch-gpu"}
+torchaudio = {version = "^2.1.0+cu118", source = "torch-gpu"}
+transformers = "^4.35.0"
 uvicorn = {extras = ["standard"], version = "^0.24.0.post1"}
+seaborn = "^0.13.0"
 
 [tool.poetry.group.dev.dependencies]
 black = "^23.10.1"
@@ -17,6 +26,11 @@ codespell = "^2.2.6"
 coverage = "^7.3.2"
 isort = "^5.12.0"
 pylint = "^3.0.2"
+
+[[tool.poetry.source]]
+name = "torch-gpu"
+url = "https://download.pytorch.org/whl/cu118"
+priority = "supplemental"
 
 [build-system]
 requires = ["poetry-core"]

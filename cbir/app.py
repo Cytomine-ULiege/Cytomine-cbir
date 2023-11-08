@@ -16,7 +16,7 @@
 
 from fastapi import FastAPI, APIRouter
 
-from . import __version__
+from cbir import __version__
 
 
 router = APIRouter(prefix="/api")

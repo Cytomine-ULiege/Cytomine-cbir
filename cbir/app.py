@@ -14,11 +14,10 @@
 
 """Content Based Image Retrieval API"""
 
-from fastapi import FastAPI, APIRouter
+from fastapi import APIRouter, FastAPI
 
 from cbir import __version__
 from cbir.api import index
-
 
 router = APIRouter(prefix="/api")
 

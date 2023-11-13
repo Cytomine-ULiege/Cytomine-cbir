@@ -14,44 +14,45 @@
 
 """Image indexing"""
 
-from fastapi import APIRouter, UploadFile, File
+import os
+from pathlib import Path
 
-from pydantic import BaseModel
-from cbir_tfe.models import Model
 from cbir_tfe.db import Database
-from cbir.config import ModelSetting
+from cbir_tfe.models import Model
+from fastapi import APIRouter, File, UploadFile
 
-config = ModelSetting.get_settings()
+from cbir.config import DatabaseSetting, ModelSetting
+from cbir.utils import check_database
+
+database_settings = DatabaseSetting.get_settings()
+model_settings = ModelSetting.get_settings()
 router = APIRouter()
-
-
-class IndexBody(BaseModel):
-    db_name: str = "db"
-    extractor: str
-    rewrite: bool = False
 
 
 @router.post("/images/index")
 async def index_image(image: UploadFile = File(...)):
     """Index the given image."""
-    print(image)
+
+    content = await image.read()
+    image_path = Path(os.path.join(database_settings.image_path, image.filename))
+    image_path.parent.mkdir(parents=True, exist_ok=True)
+    image_path.write_bytes(content)
 
     model = Model(
-        model=config.extractor,
-        use_dr=config.use_dr,
-        num_features=config.n_features,
-        name=config.weights,
-        device="cuda:0",
+        model=model_settings.extractor,
+        use_dr=model_settings.use_dr,
+        num_features=model_settings.n_features,
+        name=model_settings.weights,
+        device=model_settings.device,
     )
 
-    database = Database('db', model, load=config.load_database)
-    #database.add_dataset("TODO", config.extractor, config.generalise, label = True)
-
-@router.post('/file')
-def _file_upload(
-        my_file: UploadFile = File(...),
-):
-    print(my_file)
-    return {
-        "name": my_file.filename,
-    }
+    database = Database(
+        database_settings.filename,
+        model,
+        load=check_database(database_settings.filename),
+    )
+    database.add_dataset(
+        database_settings.image_path,
+        model_settings.extractor,
+        model_settings.generalise,
+    )

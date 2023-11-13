@@ -17,14 +17,32 @@
 from pydantic_settings import BaseSettings
 
 
+class DatabaseSetting(BaseSettings):
+    """Database settings."""
+
+    filename: str = "db"
+    host: str = "localhost"
+    port: int = 6379
+    db: int = 0
+    image_path: str = "/tmp/images/"
+
+    @staticmethod
+    def get_settings():
+        """Get the settings.
+
+        Returns:
+            DatabaseSetting: The database settings.
+        """
+        return DatabaseSetting(_env_file="database.env", _env_file_encoding="utf-8")
+
+
 class ModelSetting(BaseSettings):
-    """Benchmark settings."""
+    """Model settings."""
 
     device: str = "cpu"
     extractor: str = "resnet"
     generalise: int = 0
     n_features: int = 128
-    load_database: bool = False
     use_dr: bool = False
     weights: str = f"/weights/{extractor}"
 

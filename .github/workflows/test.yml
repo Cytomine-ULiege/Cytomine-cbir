@@ -11,7 +11,7 @@ jobs:
 
     services:
       redis:
-        image: redis:7.2.3-alpine3.18
+        image: redis:${{ vars.REDIS_VERSION }}
         ports:
           - 6379:6379
 

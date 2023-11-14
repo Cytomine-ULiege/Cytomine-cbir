@@ -30,7 +30,7 @@ router = APIRouter()
 
 
 @router.post("/images/index")
-async def index_image(image: UploadFile = File(...)):
+async def index_image(image: UploadFile = File()):
     """Index the given image."""
 
     content = await image.read()
@@ -57,3 +57,7 @@ async def index_image(image: UploadFile = File(...)):
         model_settings.extractor,
         model_settings.generalise,
     )
+
+
+
+    

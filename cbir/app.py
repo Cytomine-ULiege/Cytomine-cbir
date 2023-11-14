@@ -14,27 +14,10 @@
 
 """Content Based Image Retrieval API"""
 
-from fastapi import APIRouter, FastAPI
+from fastapi import FastAPI
 
 from cbir import __version__
-from cbir.api import index
-
-router = APIRouter(prefix="/api")
-
-
-@router.get("/images/{image_id}")
-def get_image():
-    """Get an image given its ID from the database"""
-
-
-@router.delete("/images/{image_id}")
-def delete_image():
-    """Delete an image from the database"""
-
-
-@router.post("/images/retrieve")
-def retrieve_image():
-    "Retrieve the nearest images given a query image."
+from cbir.api import image
 
 
 app = FastAPI(
@@ -42,5 +25,4 @@ app = FastAPI(
     description="Cytomine Content Based Image Retrieval Server (CBIR) HTTP API.",
     version=__version__,
 )
-app.include_router(router)
-app.include_router(router=index.router, prefix="/api")
+app.include_router(router=image.router, prefix="/api")

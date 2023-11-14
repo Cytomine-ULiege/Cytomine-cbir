@@ -15,11 +15,14 @@
 """Image indexing"""
 
 import os
+from io import BytesIO
 from pathlib import Path
 
 from cbir_tfe.db import Database
 from cbir_tfe.models import Model
-from fastapi import APIRouter, File, UploadFile
+from fastapi import APIRouter, File, Form, UploadFile
+from PIL import Image
+from torchvision import transforms
 
 from cbir.config import DatabaseSetting, ModelSetting
 from cbir.utils import check_database
@@ -59,5 +62,39 @@ async def index_image(image: UploadFile = File()):
     )
 
 
+@router.post("/images/retrieve")
+async def retrieve_image(nrt_neigh: int = Form(), image: UploadFile = File()):
+    """Retrieve similar images from the database."""
 
-    
+    content = await image.read()
+    features_extraction = transforms.Compose(
+        [
+            transforms.Resize((224, 224)),
+            transforms.ToTensor(),
+            transforms.Normalize(mean=[0.485, 0.456, 0.406], std=[0.229, 0.224, 0.225]),
+        ]
+    )
+    features = features_extraction(Image.open(BytesIO(content)))
+
+    model = Model(
+        model=model_settings.extractor,
+        use_dr=model_settings.use_dr,
+        num_features=model_settings.n_features,
+        name=model_settings.weights,
+        device=model_settings.device,
+    )
+
+    database = Database(
+        database_settings.filename,
+        model,
+        load=check_database(database_settings.filename),
+        device=model_settings.device,
+    )
+
+    similar_images = database.search(
+        features,
+        model_settings.extractor,
+        nrt_neigh=nrt_neigh,
+    )
+
+    print(similar_images)

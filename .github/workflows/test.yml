@@ -29,6 +29,16 @@ jobs:
           python -m pip install --upgrade pip
           python -m pip install poetry
           python -m poetry install
+
+      - name: Set up DVC
+        uses: iterative/setup-dvc@v1
+
+      - name: Pull model for tests
+        run: dvc pull
+        env:
+          GDRIVE_CREDENTIALS_DATA: ${{ secrets.GDRIVE_CREDENTIALS_DATA }}
   
       - name: Run tests
         run: python -m poetry run pytest
+        env:
+          WEIGHTS: ${{ vars.WEIGHTS_PATH }}

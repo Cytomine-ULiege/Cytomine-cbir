@@ -63,7 +63,7 @@ def init_database(model, settings):
 
 
 @asynccontextmanager
-async def lifespan(app: FastAPI):
+async def lifespan(local_app: FastAPI):
     """Lifespan of the app.
 
     Args:
@@ -71,12 +71,15 @@ async def lifespan(app: FastAPI):
     """
 
     # Settings
-    app.state.model_settings = ModelSetting.get_settings()
-    app.state.database_settings = DatabaseSetting.get_settings()
+    local_app.state.model_settings = ModelSetting.get_settings()
+    local_app.state.database_settings = DatabaseSetting.get_settings()
 
     # Initialisation
-    app.state.model = load_model(app.state.model_settings)
-    app.state.database = init_database(app.state.model, app.state.database_settings)
+    local_app.state.model = load_model(local_app.state.model_settings)
+    local_app.state.database = init_database(
+        local_app.state.model,
+        local_app.state.database_settings,
+    )
 
     yield
 

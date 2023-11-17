@@ -21,8 +21,8 @@ from typing import List
 
 from fastapi import APIRouter, File, Form, Request, UploadFile
 from PIL import Image
-from torchvision import transforms
 from pydantic import BaseModel
+from torchvision import transforms
 
 router = APIRouter()
 

@@ -18,43 +18,26 @@ import os
 from io import BytesIO
 from pathlib import Path
 
-from cbir_tfe.db import Database
-from cbir_tfe.models import Model
-from fastapi import APIRouter, File, Form, UploadFile
+from fastapi import APIRouter, File, Form, Request, UploadFile
 from PIL import Image
 from torchvision import transforms
 
-from cbir.config import DatabaseSetting, ModelSetting
-from cbir.utils import check_database
-
-database_settings = DatabaseSetting.get_settings()
-model_settings = ModelSetting.get_settings()
 router = APIRouter()
 
 
 @router.post("/images/index")
-async def index_image(image: UploadFile = File()):
+async def index_image(request: Request, image: UploadFile = File()):
     """Index the given image."""
+
+    database = request.app.state.database
+    database_settings = request.app.state.database_settings
+    model_settings = request.app.state.model_settings
 
     content = await image.read()
     image_path = Path(os.path.join(database_settings.image_path, image.filename))
     image_path.parent.mkdir(parents=True, exist_ok=True)
     image_path.write_bytes(content)
 
-    model = Model(
-        model=model_settings.extractor,
-        use_dr=model_settings.use_dr,
-        num_features=model_settings.n_features,
-        name=model_settings.weights,
-        device=model_settings.device,
-    )
-
-    database = Database(
-        database_settings.filename,
-        model,
-        load=check_database(database_settings.filename),
-        device=model_settings.device,
-    )
     database.add_dataset(
         database_settings.image_path,
         model_settings.extractor,
@@ -63,8 +46,15 @@ async def index_image(image: UploadFile = File()):
 
 
 @router.post("/images/retrieve")
-async def retrieve_image(nrt_neigh: int = Form(), image: UploadFile = File()):
+async def retrieve_image(
+    request: Request,
+    nrt_neigh: int = Form(),
+    image: UploadFile = File(),
+):
     """Retrieve similar images from the database."""
+
+    database = request.app.state.database
+    model_settings = request.app.state.model_settings
 
     content = await image.read()
     features_extraction = transforms.Compose(
@@ -75,21 +65,6 @@ async def retrieve_image(nrt_neigh: int = Form(), image: UploadFile = File()):
         ]
     )
     features = features_extraction(Image.open(BytesIO(content)))
-
-    model = Model(
-        model=model_settings.extractor,
-        use_dr=model_settings.use_dr,
-        num_features=model_settings.n_features,
-        name=model_settings.weights,
-        device=model_settings.device,
-    )
-
-    database = Database(
-        database_settings.filename,
-        model,
-        load=check_database(database_settings.filename),
-        device=model_settings.device,
-    )
 
     similar_images = database.search(
         features,

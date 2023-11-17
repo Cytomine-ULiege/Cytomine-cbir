@@ -17,21 +17,12 @@
 import os
 from io import BytesIO
 from pathlib import Path
-from typing import List
 
 from fastapi import APIRouter, File, Form, Request, UploadFile
 from PIL import Image
-from pydantic import BaseModel
 from torchvision import transforms
 
 router = APIRouter()
-
-
-class RetrieveResponse(BaseModel):
-    """Retrieval response"""
-
-    values: List[str] = []
-    distances: List[float] = []
 
 
 @router.post("/images/index")

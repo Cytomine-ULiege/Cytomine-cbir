@@ -17,12 +17,21 @@
 import os
 from io import BytesIO
 from pathlib import Path
+from typing import List
 
 from fastapi import APIRouter, File, Form, Request, UploadFile
 from PIL import Image
 from torchvision import transforms
+from pydantic import BaseModel
 
 router = APIRouter()
+
+
+class RetrieveResponse(BaseModel):
+    """Retrieval response"""
+
+    values: List[str] = []
+    distances: List[float] = []
 
 
 @router.post("/images/index")
@@ -64,7 +73,8 @@ async def retrieve_image(
         image (UploadedFile): The query image to retrieve similar images.
 
     Returns:
-
+        filenames (str): The filenames of the most similar images.
+        distances (float): The distance between the similar images and the query image.
     """
 
     database = request.app.state.database
@@ -80,10 +90,10 @@ async def retrieve_image(
     )
     features = features_extraction(Image.open(BytesIO(content)))
 
-    similar_images = database.search(
+    filenames, distances, _, _, _ = database.search(
         features,
         model_settings.extractor,
         nrt_neigh=nrt_neigh,
     )
 
-    print(similar_images)
+    return filenames, distances.tolist()

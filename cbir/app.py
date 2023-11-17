@@ -64,7 +64,11 @@ def init_database(model, settings):
 
 @asynccontextmanager
 async def lifespan(app: FastAPI):
-    """Lifespan of the app."""
+    """Lifespan of the app.
+
+    Args:
+        app (FastAPI): The FastAPI app.
+    """
 
     # Settings
     app.state.model_settings = ModelSetting.get_settings()

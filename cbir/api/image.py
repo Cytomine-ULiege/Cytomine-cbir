@@ -27,7 +27,12 @@ router = APIRouter()
 
 @router.post("/images/index")
 async def index_image(request: Request, image: UploadFile = File()):
-    """Index the given image."""
+    """Index the given image.
+
+    Args:
+        request (Request): The request.
+        image (UploadedFile): The image to index.
+    """
 
     database = request.app.state.database
     database_settings = request.app.state.database_settings
@@ -51,7 +56,16 @@ async def retrieve_image(
     nrt_neigh: int = Form(),
     image: UploadFile = File(),
 ):
-    """Retrieve similar images from the database."""
+    """Retrieve similar images from the database.
+
+    Args:
+        request (Request): The request.
+        nrt_neigh (int): The number of nearest images to retrieve.
+        image (UploadedFile): The query image to retrieve similar images.
+
+    Returns:
+
+    """
 
     database = request.app.state.database
     model_settings = request.app.state.model_settings

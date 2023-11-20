@@ -47,5 +47,5 @@ jobs:
         run: |
           echo "# Coverage report" >> $GITHUB_STEP_SUMMARY
           echo "```" >> $GITHUB_STEP_SUMMARY
-          echo $(python -m poetry run coverage report -m) >> $GITHUB_STEP_SUMMARY
+          python -m poetry run coverage report -m >> $GITHUB_STEP_SUMMARY
           echo "```" >> $GITHUB_STEP_SUMMARY

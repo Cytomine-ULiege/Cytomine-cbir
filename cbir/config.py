@@ -14,6 +14,9 @@
 
 """Environment parameters"""
 
+
+from typing import Self
+
 from pydantic_settings import BaseSettings
 
 
@@ -27,7 +30,7 @@ class DatabaseSetting(BaseSettings):
     image_path: str = "/tmp/images/"
 
     @staticmethod
-    def get_settings():
+    def get_settings() -> Self:
         """Get the settings.
 
         Returns:
@@ -47,7 +50,7 @@ class ModelSetting(BaseSettings):
     weights: str = f"/weights/{extractor}"
 
     @staticmethod
-    def get_settings():
+    def get_settings() -> Self:
         """Get the settings.
 
         Returns:

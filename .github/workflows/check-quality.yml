@@ -21,7 +21,7 @@ jobs:
       - name: Check lint
         run: python -m poetry run pylint --output=lint.txt cbir tests
 
-      - name: Upload typing coverage report
+      - name: Upload lint report
         if: ${{ always() }}
         run: |
           echo '# Lint report' >> $GITHUB_STEP_SUMMARY
@@ -50,10 +50,10 @@ jobs:
           --txt-report ./
           cbir tests
 
-      - name: Upload typing coverage report
+      - name: Upload type check coverage report
         if: ${{ always() }}
         run: |
-          echo '# Typing coverage report' >> $GITHUB_STEP_SUMMARY
+          echo '# Type check coverage report' >> $GITHUB_STEP_SUMMARY
           echo '```' >> $GITHUB_STEP_SUMMARY
           cat index.txt >> $GITHUB_STEP_SUMMARY
           echo '```' >> $GITHUB_STEP_SUMMARY

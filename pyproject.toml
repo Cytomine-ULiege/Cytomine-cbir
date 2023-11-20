@@ -1,5 +1,6 @@
 [tool.mypy]
 ignore_missing_imports = true
+plugins = ["pydantic.mypy"]
 
 [tool.poetry]
 name = "cytomine-cbir"

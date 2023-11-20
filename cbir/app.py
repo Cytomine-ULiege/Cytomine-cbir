@@ -14,6 +14,7 @@
 
 """Content Based Image Retrieval API"""
 
+from collections.abc import AsyncGenerator
 from contextlib import asynccontextmanager
 
 from cbir_tfe.db import Database
@@ -63,7 +64,7 @@ def init_database(model: Model, settings: DatabaseSetting) -> Database:
 
 
 @asynccontextmanager
-async def lifespan(local_app: FastAPI):
+async def lifespan(local_app: FastAPI) -> AsyncGenerator[None, None]:
     """Lifespan of the app.
 
     Args:

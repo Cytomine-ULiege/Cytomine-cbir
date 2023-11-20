@@ -46,7 +46,7 @@ def test_retrieve_image() -> None:
     with TestClient(app) as client:
         response = client.post(
             "/api/images/retrieve",
-            data={"nrt_neigh": 10},
+            data={"nrt_neigh": "10"},
             files=files,
         )
 

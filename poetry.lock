@@ -2559,6 +2559,7 @@ files = [
 ]
 
 [package.dependencies]
+lxml = {version = "*", optional = true, markers = "extra == \"reports\""}
 mypy-extensions = ">=1.0.0"
 tomli = {version = ">=1.1.0", markers = "python_version < \"3.11\""}
 typing-extensions = ">=4.1.0"
@@ -5012,4 +5013,4 @@ testing = ["big-O", "jaraco.functools", "jaraco.itertools", "more-itertools", "p
 [metadata]
 lock-version = "2.0"
 python-versions = "^3.9"
-content-hash = "f2657035b0e1442858a8f9ea1af0cfa85992ee1ed0d265efb956d088f64c4f1a"
+content-hash = "665ade846bd5d1da7ff0f469a965924910fa11c99e1693027205a4c801082068"

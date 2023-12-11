@@ -14,8 +14,15 @@
 
 """Database communications"""
 
+import json
+from typing import List, Tuple
+
 import faiss
+import numpy
+import torch
 from redis import Redis
+
+from cbir.models.model import Model
 
 
 class Database:
@@ -33,6 +40,7 @@ class Database:
     ) -> None:
         """Database initialisation."""
         self.filename = filename
+        self.gpu = gpu
         self.redis = Redis(host=host, port=port, db=db)
 
         if load:
@@ -45,10 +53,69 @@ class Database:
             self.redis.set("last_id", 0)
 
         if gpu:
-            resources = faiss.StandardGpuResources()
-            self.index = faiss.index_cpu_to_gpu(resources, 0, self.index)
+            self.resources = faiss.StandardGpuResources()
+            self.index = faiss.index_cpu_to_gpu(self.resources, 0, self.index)
 
-    def save(self):
+    def save(self) -> None:
         """Save the index to the file."""
-
         faiss.write_index(self.index, self.filename)
+
+    def add(self, images: numpy.array, names: List[str]) -> None:
+        """Index images."""
+        last_id = int(self.redis.get("last_id").decode("utf-8"))
+        self.index.add_with_ids(
+            images,
+            numpy.arange(last_id, last_id + images.shape[0]),
+        )
+
+        for name in names:
+            self.redis.set(str(last_id), name)
+            self.redis.set(name, str(last_id))
+            last_id += 1
+
+        self.redis.set("last_id", last_id)
+
+    def remove(self, name: str) -> None:
+        """Remove an image from the index database."""
+        key = self.redis.get(name).decode("utf-8")
+        label = int(key)
+
+        id_selector = faiss.IDSelectorRange(label, label + 1)
+
+        if self.gpu:
+            self.index = faiss.index_gpu_to_cpu(self.index)
+
+        self.index.remove_ids(id_selector)
+        self.save()
+        self.redis.delete(key)
+        self.redis.delete(name)
+
+        if self.device == "gpu":
+            self.index = faiss.index_cpu_to_gpu(self.resources, 0, self.index)
+
+    def index_image(self, model: Model, image: torch.Tensor, filename: str) -> None:
+        """Index an image."""
+
+        # Create a dataset of one image
+        inputs = torch.unsqueeze(image, dim=0)
+
+        with torch.no_grad():
+            outputs = model(inputs.to(model.device)).cpu().numpy()
+
+        self.add(outputs, [filename])
+        self.save()
+
+    def search_similar_images(
+        self,
+        model: Model,
+        query: torch.Tensor,
+        nrt_neigh=10,
+    ) -> Tuple[List[str], List[float]]:
+        """Search similar images given a query image."""
+
+        with torch.no_grad():
+            outputs = model(query).cpu().numpy()
+
+        distances, labels = self.index.search(outputs, nrt_neigh)
+
+        return labels, distances

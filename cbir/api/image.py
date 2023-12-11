@@ -18,7 +18,6 @@ import json
 import os
 from io import BytesIO
 from pathlib import Path
-from typing import List, Tuple
 
 from fastapi import (
     APIRouter,
@@ -63,7 +62,7 @@ async def retrieve_image(
     request: Request,
     nrt_neigh: int = Form(),
     image: UploadFile = File(),
-) -> Tuple[List[str], List[float]]:
+) -> Response:
     """Retrieve similar images from the database."""
 
     database = request.app.state.database

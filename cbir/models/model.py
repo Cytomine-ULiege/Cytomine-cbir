@@ -14,10 +14,12 @@
 
 """Deep learning base model"""
 
+from abc import ABCMeta
+
 from torch import nn
 
 
-class Model(nn.Module):
+class Model(nn.Module, metaclass=ABCMeta):
     """Base model"""
 
     def __init__(self, n_features: int) -> None:

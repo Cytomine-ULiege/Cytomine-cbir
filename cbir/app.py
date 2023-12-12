@@ -17,7 +17,6 @@
 from collections.abc import AsyncGenerator
 from contextlib import asynccontextmanager
 
-from cbir_tfe.db import Database
 from cbir_tfe.models import Model
 from fastapi import FastAPI
 
@@ -25,6 +24,7 @@ from cbir import __version__
 from cbir.api import image
 from cbir.config import DatabaseSetting, ModelSetting
 from cbir.utils import check_database
+from cbir.retrieval.database import Database
 
 
 def load_model(settings: ModelSetting) -> Model:
@@ -42,12 +42,12 @@ def init_database(model: Model, settings: DatabaseSetting) -> Database:
     """Initialise the database."""
     return Database(
         settings.filename,
-        model,
-        load=check_database(settings.filename),
-        device=model.device,
+        model.num_features,
         host=settings.host,
         port=settings.port,
         db=settings.db,
+        load=check_database(settings.filename),
+        gpu=not (model.device == "cpu"),
     )
 
 

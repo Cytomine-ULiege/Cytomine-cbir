@@ -14,7 +14,6 @@
 
 """Database communications"""
 
-import json
 from typing import List, Tuple
 
 import faiss
@@ -117,5 +116,10 @@ class Database:
             outputs = model(query).cpu().numpy()
 
         distances, labels = self.index.search(outputs, nrt_neigh)
+        labels = [l for l in list(labels[0]) if l != -1]
+        values = []
+        for l in labels:
+            v = self.redis.get(str(l)).decode("utf-8")
+            values.append(v)
 
         return labels, distances

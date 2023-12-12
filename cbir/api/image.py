@@ -30,6 +30,7 @@ from fastapi import (
 )
 from PIL import Image
 from torchvision import transforms
+import torch
 
 router = APIRouter()
 
@@ -42,18 +43,21 @@ async def index_image(request: Request, image: UploadFile = File()) -> None:
         raise HTTPException(status_code=404, detail="Image filename not found")
 
     database = request.app.state.database
-    database_settings = request.app.state.database_settings
-    model_settings = request.app.state.model_settings
+    model = request.app.state.model
 
     content = await image.read()
-    image_path = Path(os.path.join(database_settings.image_path, image.filename))
-    image_path.parent.mkdir(parents=True, exist_ok=True)
-    image_path.write_bytes(content)
+    features_extraction = transforms.Compose(
+        [
+            transforms.Resize((224, 224)),
+            transforms.ToTensor(),
+            transforms.Normalize(mean=[0.485, 0.456, 0.406], std=[0.229, 0.224, 0.225]),
+        ]
+    )
 
-    database.add_dataset(
-        database_settings.image_path,
-        model_settings.extractor,
-        model_settings.generalise,
+    database.index_image(
+        model,
+        features_extraction(Image.open(BytesIO(content))),
+        image.filename,
     )
 
 

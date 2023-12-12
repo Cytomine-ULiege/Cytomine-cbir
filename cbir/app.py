@@ -46,15 +46,11 @@ def init_database(model: Model, settings: DatabaseSetting) -> Database:
 async def lifespan(local_app: FastAPI) -> AsyncGenerator[None, None]:
     """Lifespan of the app."""
 
-    # Settings
-    local_app.state.model_settings = ModelSetting.get_settings()
-    local_app.state.database_settings = DatabaseSetting.get_settings()
-
     # Initialisation
-    local_app.state.model = load_model(local_app.state.model_settings)
+    local_app.state.model = load_model(ModelSetting.get_settings())
     local_app.state.database = init_database(
         local_app.state.model,
-        local_app.state.database_settings,
+        DatabaseSetting.get_settings(),
     )
 
     yield

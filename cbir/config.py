@@ -25,7 +25,6 @@ class DatabaseSetting(BaseSettings):
     host: str = "localhost"
     port: int = 6379
     db: int = 0
-    image_path: str = "/tmp/images/"
 
     @staticmethod
     def get_settings() -> "DatabaseSetting":

@@ -14,6 +14,7 @@
 
 """Database communications"""
 
+import os
 from typing import List, Tuple
 
 import faiss
@@ -21,6 +22,7 @@ import numpy
 import torch
 from redis import Redis
 
+from cbir.config import DatabaseSetting
 from cbir.models.model import Model
 
 
@@ -29,21 +31,18 @@ class Database:
 
     def __init__(
         self,
-        filename: str,
+        settings: DatabaseSetting,
         n_features: int,
-        host: str = "localhost",
-        port: int = 6379,
-        db: int = 0,
-        load: bool = False,
         gpu: bool = False,
     ) -> None:
         """Database initialisation."""
-        self.filename = filename
+        self.settings = settings
+        self.redis = Redis(host=settings.host, port=settings.port, db=settings.db)
         self.gpu = gpu
-        self.redis = Redis(host=host, port=port, db=db)
 
-        if load:
-            self.index = faiss.read_index(filename)
+        # Check if the database exists
+        if os.path.isfile(settings.filename):
+            self.index = faiss.read_index(settings.filename)
         else:
             self.index = faiss.IndexFlatL2(n_features)
             self.index = faiss.IndexIDMap(self.index)
@@ -57,7 +56,7 @@ class Database:
 
     def save(self) -> None:
         """Save the index to the file."""
-        faiss.write_index(self.index, self.filename)
+        faiss.write_index(self.index, self.settings.filename)
 
     def add(self, images: numpy.array, names: List[str]) -> None:
         """Index images."""
@@ -89,7 +88,7 @@ class Database:
         self.redis.delete(key)
         self.redis.delete(name)
 
-        if self.device == "gpu":
+        if self.gpu:
             self.index = faiss.index_cpu_to_gpu(self.resources, 0, self.index)
 
     def index_image(self, model: Model, image: torch.Tensor, filename: str) -> None:

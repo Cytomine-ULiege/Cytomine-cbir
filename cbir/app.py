@@ -14,7 +14,6 @@
 
 """Content Based Image Retrieval API"""
 
-import os
 from collections.abc import AsyncGenerator
 from contextlib import asynccontextmanager
 
@@ -40,15 +39,7 @@ def load_model(settings: ModelSetting) -> Model:
 
 def init_database(model: Model, settings: DatabaseSetting) -> Database:
     """Initialise the database."""
-    return Database(
-        settings.filename,
-        model.num_features,
-        host=settings.host,
-        port=settings.port,
-        db=settings.db,
-        load=os.path.isfile(settings.filename),
-        gpu=not (model.device == "cpu"),
-    )
+    return Database(settings, model.num_features, gpu=not model.device == "cpu")
 
 
 @asynccontextmanager

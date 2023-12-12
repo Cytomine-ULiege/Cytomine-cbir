@@ -14,6 +14,7 @@
 
 """Content Based Image Retrieval API"""
 
+import os
 from collections.abc import AsyncGenerator
 from contextlib import asynccontextmanager
 
@@ -23,7 +24,6 @@ from fastapi import FastAPI
 from cbir import __version__
 from cbir.api import image
 from cbir.config import DatabaseSetting, ModelSetting
-from cbir.utils import check_database
 from cbir.retrieval.database import Database
 
 
@@ -46,7 +46,7 @@ def init_database(model: Model, settings: DatabaseSetting) -> Database:
         host=settings.host,
         port=settings.port,
         db=settings.db,
-        load=check_database(settings.filename),
+        load=os.path.isfile(settings.filename),
         gpu=not (model.device == "cpu"),
     )
 

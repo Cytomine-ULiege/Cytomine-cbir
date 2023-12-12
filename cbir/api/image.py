@@ -15,9 +15,7 @@
 """Image indexing and retrieval"""
 
 import json
-import os
 from io import BytesIO
-from pathlib import Path
 
 from fastapi import (
     APIRouter,
@@ -30,7 +28,6 @@ from fastapi import (
 )
 from PIL import Image
 from torchvision import transforms
-import torch
 
 router = APIRouter()
 
@@ -70,7 +67,7 @@ async def retrieve_image(
     """Retrieve similar images from the database."""
 
     database = request.app.state.database
-    model_settings = request.app.state.model_settings
+    model = request.app.state.model
 
     content = await image.read()
     features_extraction = transforms.Compose(
@@ -80,11 +77,10 @@ async def retrieve_image(
             transforms.Normalize(mean=[0.485, 0.456, 0.406], std=[0.229, 0.224, 0.225]),
         ]
     )
-    features = features_extraction(Image.open(BytesIO(content)))
 
-    filenames, distances, _, _, _ = database.search(
-        features,
-        model_settings.extractor,
+    filenames, distances = database.search_similar_images(
+        model,
+        features_extraction(Image.open(BytesIO(content))),
         nrt_neigh=nrt_neigh,
     )
 

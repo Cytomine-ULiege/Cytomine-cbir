@@ -112,14 +112,16 @@ class Database:
     ) -> Tuple[List[str], List[float]]:
         """Search similar images given a query image."""
 
+        inputs = torch.unsqueeze(query, dim=0)
+
         with torch.no_grad():
-            outputs = model(query).cpu().numpy()
+            outputs = model(inputs.to(model.device)).cpu().numpy()
 
         distances, labels = self.index.search(outputs, nrt_neigh)
-        labels = [l for l in list(labels[0]) if l != -1]
-        values = []
-        for l in labels:
-            v = self.redis.get(str(l)).decode("utf-8")
-            values.append(v)
+        distances, labels = distances.squeeze(), labels.squeeze()
 
-        return labels, distances
+        # Return only valid results
+        stop = labels.tolist().index(-1) if -1 in labels else len(labels)
+        filenames = [self.redis.get(str(l)).decode("utf-8") for l in labels[:stop]]
+
+        return filenames, distances[:stop]

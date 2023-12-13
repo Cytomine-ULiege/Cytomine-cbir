@@ -56,7 +56,9 @@ class Database:
 
     def save(self) -> None:
         """Save the index to the file."""
-        faiss.write_index(self.index, self.settings.filename)
+
+        index = faiss.index_gpu_to_cpu(self.index) if self.gpu else self.index
+        faiss.write_index(index, self.settings.filename)
 
     def add(self, images: numpy.array, names: List[str]) -> None:
         """Index images."""
@@ -114,7 +116,7 @@ class Database:
         inputs = torch.unsqueeze(query, dim=0)
 
         with torch.no_grad():
-            outputs = model(inputs.to(model.device)).cpu().numpy()
+            outputs = model(inputs).cpu().numpy()
 
         distances, labels = self.index.search(outputs, nrt_neigh)
         distances, labels = distances.squeeze(), labels.squeeze()

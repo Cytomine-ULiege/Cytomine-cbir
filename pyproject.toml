@@ -19,7 +19,6 @@ packages = [{include = "cbir"}]
 
 [tool.poetry.dependencies]
 python = "^3.9"
-cbir-tfe = {git = "https://github.com/Cytomine-ULiege/cbir-tfe.git", rev = "master"}
 faiss-gpu = "^1.7.2"
 fastapi = "^0.104.1"
 numpy = "^1.26.2"

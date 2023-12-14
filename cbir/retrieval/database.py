@@ -20,7 +20,7 @@ from typing import List, Tuple
 import faiss
 import numpy
 import torch
-from redis import Redis
+from redis import Redis  # type: ignore
 
 from cbir.config import DatabaseSetting
 from cbir.models.model import Model

@@ -60,7 +60,7 @@ class Database:
         index = faiss.index_gpu_to_cpu(self.index) if self.gpu else self.index
         faiss.write_index(index, self.settings.filename)
 
-    def add(self, images: numpy.array, names: List[str]) -> None:
+    def add(self, images: torch.Tensor, names: List[str]) -> None:
         """Index images."""
         last_id = int(self.redis.get("last_id").decode("utf-8"))
         self.index.add_with_ids(
@@ -109,7 +109,7 @@ class Database:
         self,
         model: Model,
         query: torch.Tensor,
-        nrt_neigh=10,
+        nrt_neigh: int = 10,
     ) -> Tuple[List[str], List[float]]:
         """Search similar images given a query image."""
 

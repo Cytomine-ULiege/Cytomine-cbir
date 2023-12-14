@@ -44,9 +44,11 @@ jobs:
         with:
           python-version: ${{ vars.PYTHON_VERSION }}
 
+      - name: Install stub packages
+        run: python -m poetry run mypy --install-types
+
       - name: Check type
         run: >-
-          python -m poetry run mypy --install-types
           python -m poetry run mypy
           --disallow-incomplete-defs
           --disallow-untyped-calls

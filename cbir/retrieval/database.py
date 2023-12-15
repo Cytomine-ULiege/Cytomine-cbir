@@ -54,6 +54,11 @@ class Database:
             self.resources = faiss.StandardGpuResources()
             self.index = faiss.index_cpu_to_gpu(self.resources, 0, self.index)
 
+    def contains(self, name: str) -> bool:
+        """Check if a filename is in the index database."""
+
+        return self.redis.get(name) is not None
+
     def save(self) -> None:
         """Save the index to the file."""
 
@@ -77,21 +82,17 @@ class Database:
 
     def remove(self, name: str) -> None:
         """Remove an image from the index database."""
+
         key = self.redis.get(name).decode("utf-8")
         label = int(key)
-
         id_selector = faiss.IDSelectorRange(label, label + 1)
 
-        if self.gpu:
-            self.index = faiss.index_gpu_to_cpu(self.index)
+        index = faiss.index_gpu_to_cpu(self.index) if self.gpu else self.index
+        index.remove_ids(id_selector)
 
-        self.index.remove_ids(id_selector)
         self.save()
         self.redis.delete(key)
         self.redis.delete(name)
-
-        if self.gpu:
-            self.index = faiss.index_cpu_to_gpu(self.resources, 0, self.index)
 
     def index_image(self, model: Model, image: torch.Tensor, filename: str) -> None:
         """Index an image."""

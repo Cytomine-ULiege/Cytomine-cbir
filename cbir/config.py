@@ -22,8 +22,8 @@ from pydantic_settings import BaseSettings
 class DatabaseSetting(BaseSettings):
     """Database settings."""
 
-    data_path: str = "/data"
     filename: str = "db"
+    data_path: str = "/data"
     database_path: str = f"{data_path}/{filename}"
     host: str = "localhost"
     port: int = 6379

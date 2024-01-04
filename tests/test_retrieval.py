@@ -52,6 +52,8 @@ def test_retrieve_image() -> None:
 
     data = response.json()
 
+    assert response.status_code == 200
     assert "distances" in data
     assert "filenames" in data
-    assert response.status_code == 200
+    assert type(data["distances"]) is list
+    assert type(data["filenames"]) is list

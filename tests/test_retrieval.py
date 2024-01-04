@@ -55,8 +55,8 @@ def test_retrieve_one_image() -> None:
     assert response.status_code == 200
     assert "distances" in data
     assert "filenames" in data
-    assert type(data["distances"]) is list
-    assert type(data["filenames"]) is list
+    assert isinstance(data["distances"], list)
+    assert isinstance(data["filenames"], list)
     assert len(data["distances"]) == 1
     assert len(data["filenames"]) == 1
 
@@ -79,5 +79,5 @@ def test_retrieve_image() -> None:
     assert response.status_code == 200
     assert "distances" in data
     assert "filenames" in data
-    assert type(data["distances"]) is list
-    assert type(data["filenames"]) is list
+    assert isinstance(data["distances"], list)
+    assert isinstance(data["filenames"], list)

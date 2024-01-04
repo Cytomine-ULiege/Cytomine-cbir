@@ -41,8 +41,8 @@ class Database:
         self.gpu = gpu
 
         # Check if the database exists
-        if os.path.isfile(settings.filename):
-            self.index = faiss.read_index(settings.filename)
+        if os.path.isfile(settings.database_path):
+            self.index = faiss.read_index(settings.database_path)
         else:
             self.index = faiss.IndexFlatL2(n_features)
             self.index = faiss.IndexIDMap(self.index)
@@ -58,7 +58,7 @@ class Database:
         """Save the index to the file."""
 
         index = faiss.index_gpu_to_cpu(self.index) if self.gpu else self.index
-        faiss.write_index(index, self.settings.filename)
+        faiss.write_index(index, self.settings.database_path)
 
     def add(self, images: torch.Tensor, names: List[str]) -> None:
         """Index images."""

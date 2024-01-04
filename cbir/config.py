@@ -14,6 +14,7 @@
 
 """Environment parameters"""
 
+import os
 
 import torch
 from pydantic_settings import BaseSettings
@@ -24,7 +25,6 @@ class DatabaseSetting(BaseSettings):
 
     filename: str = "db"
     data_path: str = "/data"
-    database_path: str = f"{data_path}/{filename}"
     host: str = "localhost"
     port: int = 6379
     db: int = 0
@@ -33,6 +33,10 @@ class DatabaseSetting(BaseSettings):
     def get_settings() -> "DatabaseSetting":
         """Get the settings."""
         return DatabaseSetting()
+
+    def get_database_path(self) -> str:
+        """Get the database path."""
+        return os.path.join(self.data_path, self.filename)
 
 
 class ModelSetting(BaseSettings):

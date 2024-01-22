@@ -58,7 +58,7 @@ async def index_image(request: Request, image: UploadFile = File()) -> None:
     )
 
 
-@router.get("/images/remove")
+@router.delete("/images/remove")
 def remove_image(request: Request, filename: str) -> None:
     """Remove an indexed image."""
 

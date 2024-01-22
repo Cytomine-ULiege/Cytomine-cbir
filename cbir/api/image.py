@@ -65,7 +65,7 @@ def remove_image(request: Request, filename: str) -> None:
     database = request.app.state.database
 
     if not database.contains(filename):
-        raise HTTPException(status_code=404, detail="Filename not found")
+        raise HTTPException(status_code=404, detail=f"{filename} not found")
 
     database.remove(filename)
 

@@ -87,8 +87,12 @@ class Database:
         label = int(key)
         id_selector = faiss.IDSelectorRange(label, label + 1)
 
-        index = faiss.index_gpu_to_cpu(self.index) if self.gpu else self.index
-        index.remove_ids(id_selector)
+        self.index = faiss.index_gpu_to_cpu(self.index) if self.gpu else self.index
+        self.index.remove_ids(id_selector)
+
+        if self.gpu:
+            self.resources = faiss.StandardGpuResources()
+            self.index = faiss.index_cpu_to_gpu(self.resources, 0, self.index)
 
         self.save()
         self.redis.delete(key)

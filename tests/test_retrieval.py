@@ -27,10 +27,10 @@ def test_index_image() -> None:
 
     database_settings = DatabaseSetting.get_settings()
 
-    with TestClient(app) as client:
+    with TestClient(app) as client, open("tests/data/image.png", "rb") as image:
         response = client.post(
             "/api/images/index",
-            files={"image": open("tests/data/image.png", "rb")},
+            files={"image": image},
         )
 
     assert response.status_code == 200
@@ -64,11 +64,11 @@ def test_remove_image() -> None:
 def test_retrieve_image() -> None:
     """Test image retrieval."""
 
-    with TestClient(app) as client:
+    with TestClient(app) as client, open("tests/data/image.png", "rb") as image:
         response = client.post(
             "/api/images/retrieve",
             data={"nrt_neigh": "10"},
-            files={"image": open("tests/data/image.png", "rb")},
+            files={"image": image},
         )
 
     data = response.json()

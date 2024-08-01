@@ -26,13 +26,13 @@ def app():
     local_app = FastAPI()
     local_app.include_router(router)
 
-    settings = type("Settings", (object,), {"path": tempfile.mkdtemp()})
+    settings = type("Settings", (object,), {"data_path": tempfile.mkdtemp()})
     local_app.state.database = type("Database", (object,), {"settings": settings})
 
     yield local_app
 
     # Cleanup after tests
-    shutil.rmtree(local_app.state.database.settings.path)
+    shutil.rmtree(local_app.state.database.settings.data_path)
 
 
 @pytest.fixture
@@ -73,9 +73,9 @@ def test_create_storage(client):
 
     storage_name = "test_storage"
 
-    response = client.post("/storages", params={"name": storage_name})
+    response = client.post("/storages", json={"name": storage_name})
     assert response.status_code == 200
-    assert response.json() == f"Created storage with name: {storage_name}"
+    assert response.json() == {"message": f"Created storage with name: {storage_name}"}
 
     response = client.get("/storages")
     assert response.status_code == 200
@@ -91,7 +91,7 @@ def test_get_storage(client):
     """
 
     storage_name = "test_storage"
-    client.post("/storages", params={"name": storage_name})
+    client.post("/storages", json={"name": storage_name})
 
     response = client.get(f"/storages/{storage_name}")
     assert response.status_code == 200
@@ -124,9 +124,9 @@ def test_create_existing_storage(client):
     """
 
     storage_name = "test_storage"
-    client.post("/storages", params={"name": storage_name})
+    client.post("/storages", json={"name": storage_name})
 
-    response = client.post("/storages", params={"name": storage_name})
+    response = client.post("/storages", json={"name": storage_name})
     assert response.status_code == 409
     assert response.json() == {
         "detail": f"Storage with name '{storage_name}' already exists."
@@ -142,11 +142,11 @@ def test_delete_storage(client):
     """
 
     storage_name = "test_storage"
-    client.post("/storages", params={"name": storage_name})
+    client.post("/storages", json={"name": storage_name})
 
     response = client.delete(f"/storages/{storage_name}")
     assert response.status_code == 200
-    assert response.json() == f"Deleted storage with name: {storage_name}"
+    assert response.json() == {"message": f"Deleted storage with name: {storage_name}"}
 
     response = client.get(f"/storages/{storage_name}")
     assert response.status_code == 404

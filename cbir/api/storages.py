@@ -6,6 +6,8 @@ from pathlib import Path
 from fastapi import APIRouter, HTTPException, Request
 from fastapi.responses import JSONResponse
 
+from cbir.api.utils.models import Storage
+
 router = APIRouter()
 
 
@@ -14,7 +16,7 @@ async def get_storages(request: Request) -> JSONResponse:
     """Get all storages."""
 
     settings = request.app.state.database.settings
-    base_path = Path(settings.path)
+    base_path = Path(settings.data_path)
 
     if not base_path.is_dir():
         return HTTPException(
@@ -28,17 +30,17 @@ async def get_storages(request: Request) -> JSONResponse:
 
 
 @router.post("/storages")
-async def create_storage(request: Request, name: str) -> JSONResponse:
+async def create_storage(request: Request, body: Storage) -> JSONResponse:
     """Create a new storage."""
 
     settings = request.app.state.database.settings
-    base_path = Path(settings.path)
-    storage_path = base_path / name
+    base_path = Path(settings.data_path)
+    storage_path = base_path / body.name
 
     if storage_path.exists():
         raise HTTPException(
             status_code=409,
-            detail=f"Storage with name '{name}' already exists.",
+            detail=f"Storage with name '{body.name}' already exists.",
         )
 
     try:
@@ -49,7 +51,7 @@ async def create_storage(request: Request, name: str) -> JSONResponse:
             detail=f"Failed to create storage: {str(e)}",
         ) from e
 
-    return JSONResponse(content=f"Created storage with name: {name}")
+    return JSONResponse(content={"message": f"Created storage with name: {body.name}"})
 
 
 @router.get("/storages/{name}")
@@ -57,7 +59,7 @@ async def get_storage(request: Request, name: str) -> JSONResponse:
     """Get a specific storage."""
 
     settings = request.app.state.database.settings
-    base_path = Path(settings.path)
+    base_path = Path(settings.data_path)
     storage_path = base_path / name
 
     if not storage_path.is_dir():
@@ -66,7 +68,7 @@ async def get_storage(request: Request, name: str) -> JSONResponse:
             detail=f"Storage with name '{name}' not found.",
         )
 
-    return JSONResponse(content={"name": name}, media_type="application/json")
+    return JSONResponse(content={"name": name})
 
 
 @router.delete("/storages/{name}")
@@ -74,7 +76,7 @@ async def delete_storage(request: Request, name: str) -> JSONResponse:
     """Delete a specific storage and its content."""
 
     settings = request.app.state.database.settings
-    base_path = Path(settings.path)
+    base_path = Path(settings.data_path)
     storage_path = base_path / name
 
     if not storage_path.is_dir():
@@ -91,4 +93,4 @@ async def delete_storage(request: Request, name: str) -> JSONResponse:
             detail=f"Failed to delete storage: {str(e)}",
         ) from e
 
-    return JSONResponse(content=f"Deleted storage with name: {name}")
+    return JSONResponse(content={"message": f"Deleted storage with name: {name}"})

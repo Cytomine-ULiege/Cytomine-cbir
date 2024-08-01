@@ -70,7 +70,7 @@ async def get_storage(request: Request, name: str) -> JSONResponse:
 
 
 @router.delete("/storages/{name}")
-async def delete_storage(request: Request, name: int) -> JSONResponse:
+async def delete_storage(request: Request, name: str) -> JSONResponse:
     """Delete a specific storage and its content."""
 
     settings = request.app.state.database.settings

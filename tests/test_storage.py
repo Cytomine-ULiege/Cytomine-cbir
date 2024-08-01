@@ -2,7 +2,7 @@
 
 import shutil
 import tempfile
-from typing import Any, Generator, Type
+from typing import Any, Generator
 
 import pytest
 from fastapi import FastAPI

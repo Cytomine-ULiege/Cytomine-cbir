@@ -19,7 +19,7 @@ async def get_storages(request: Request) -> JSONResponse:
     base_path = Path(settings.data_path)
 
     if not base_path.is_dir():
-        return HTTPException(
+        raise HTTPException(
             status_code=404,
             detail="Base path not found or is not a directory",
         )

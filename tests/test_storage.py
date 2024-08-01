@@ -2,6 +2,7 @@
 
 import shutil
 import tempfile
+from typing import Any, Generator, Type
 
 import pytest
 from fastapi import FastAPI
@@ -11,7 +12,7 @@ from cbir.api.storages import router
 
 
 @pytest.fixture
-def app():
+def app() -> Generator[Any, Any, Any]:
     """
     Create and provide a FastAPI application instance for testing.
 
@@ -32,11 +33,11 @@ def app():
     yield local_app
 
     # Cleanup after tests
-    shutil.rmtree(local_app.state.database.settings.data_path)
+    shutil.rmtree(local_app.state.database.settings.data_path)  # type: ignore
 
 
 @pytest.fixture
-def client(app):
+def client(app: FastAPI) -> TestClient:
     """
     Provide a test client for the FastAPI application.
 
@@ -50,7 +51,7 @@ def client(app):
     return TestClient(app)
 
 
-def test_get_storages(client):
+def test_get_storages(client: TestClient) -> None:
     """
     Test the GET /storages endpoint.
 
@@ -63,7 +64,7 @@ def test_get_storages(client):
     assert response.json() == []
 
 
-def test_create_storage(client):
+def test_create_storage(client: TestClient) -> None:
     """
     Test the POST /storages endpoint.
 
@@ -82,7 +83,7 @@ def test_create_storage(client):
     assert storage_name in response.json()
 
 
-def test_get_storage(client):
+def test_get_storage(client: TestClient) -> None:
     """
     Test the GET /storages/{name} endpoint.
 
@@ -98,7 +99,7 @@ def test_get_storage(client):
     assert response.json() == {"name": storage_name}
 
 
-def test_get_storage_not_found(client):
+def test_get_storage_not_found(client: TestClient) -> None:
     """
     Test the GET /storages/{name} endpoint for non-existent storage.
 
@@ -115,7 +116,7 @@ def test_get_storage_not_found(client):
     }
 
 
-def test_create_existing_storage(client):
+def test_create_existing_storage(client: TestClient) -> None:
     """
     Test the POST /storages/{name} endpoint for an existing storage.
 
@@ -133,7 +134,7 @@ def test_create_existing_storage(client):
     }
 
 
-def test_delete_storage(client):
+def test_delete_storage(client: TestClient) -> None:
     """
     Test the DELETE /storages/{name} endpoint.
 
@@ -152,7 +153,7 @@ def test_delete_storage(client):
     assert response.status_code == 404
 
 
-def test_delete_storage_not_found(client):
+def test_delete_storage_not_found(client: TestClient) -> None:
     """
     Test the DELETE /storages/{name} endpoint when the storage does not exist.
 

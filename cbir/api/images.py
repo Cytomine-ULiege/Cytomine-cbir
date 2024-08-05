@@ -74,7 +74,13 @@ async def index_image(
         image.filename,
     )
 
-    return JSONResponse(content={"ids": ids, "index": index_name})
+    return JSONResponse(
+        content={
+            "ids": ids,
+            "storage": storage_name,
+            "index": index_name,
+        }
+    )
 
 
 @router.delete("/images/{filename}")

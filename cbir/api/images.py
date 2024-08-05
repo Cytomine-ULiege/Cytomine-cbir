@@ -101,7 +101,7 @@ async def index_image(
     return JSONResponse(content={"id": last_id - 1})
 
 
-@router.delete("/images/remove")
+@router.delete("/images/{filename}")
 def remove_image(request: Request, filename: str) -> None:
     """Remove an indexed image."""
 

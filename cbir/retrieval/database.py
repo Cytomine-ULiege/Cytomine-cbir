@@ -14,11 +14,8 @@
 
 """Database communications"""
 
-import os
 from typing import List, Tuple
 
-import faiss
-import numpy
 import torch
 from redis import Redis  # type: ignore
 
@@ -29,87 +26,36 @@ from cbir.models.model import Model
 class Database:
     """Database to store the indices."""
 
-    def __init__(
-        self,
-        settings: DatabaseSetting,
-        n_features: int,
-        gpu: bool = False,
-    ) -> None:
+    def __init__(self, settings: DatabaseSetting) -> None:
         """Database initialisation."""
         self.settings = settings
         self.redis = Redis(host=settings.host, port=settings.port, db=settings.db)
-        self.gpu = gpu
 
-        # Check if the database exists
-        self.database_path = settings.get_database_path()
-        if os.path.isfile(self.database_path):
-            self.index = faiss.read_index(self.database_path)
-        else:
-            self.index = faiss.IndexFlatL2(n_features)
-            self.index = faiss.IndexIDMap(self.index)
+    def get_last_id(self, storage_name: str, index_name: str) -> str:
+        return self.redis.get(f"{storage_name}:{index_name}:last_id") or "0"
 
-            self.redis.flushdb()
-            self.redis.set("last_id", 0)
+    def update_last_id(self, storage_name: str, index_name: str, last_id):
+        self.redis.set(f"{storage_name}:{index_name}:last_id", last_id)
 
-        if gpu:
-            self.resources = faiss.StandardGpuResources()
-            self.index = faiss.index_cpu_to_gpu(self.resources, 0, self.index)
-
-    def contains(self, name: str) -> bool:
+    def contains(self, storage_name: str, index_name: str, name: str) -> bool:
         """Check if a filename is in the index database."""
+        return self.redis.get(f"{storage_name}:{index_name}:{name}") is not None
 
-        return self.redis.get(name) is not None
+    def save(
+        self,
+        storage_name: str,
+        index_name: str,
+        name: str,
+        ids: List[int],
+    ) -> None:
+        """Save the index database."""
+        for idx in ids:
+            self.redis.set(f"{storage_name}:{index_name}:{name}", idx)
 
-    def save(self) -> None:
-        """Save the index to the file."""
-
-        index = faiss.index_gpu_to_cpu(self.index) if self.gpu else self.index
-        faiss.write_index(index, self.database_path)
-
-    def add(self, images: torch.Tensor, names: List[str]) -> List[int]:
-        """Index images."""
-        last_id = int(self.redis.get("last_id").decode("utf-8"))
-        ids = numpy.arange(last_id, last_id + images.shape[0])
-        self.index.add_with_ids(images, ids)
-
-        for name in names:
-            self.redis.set(str(last_id), name)
-            self.redis.set(name, str(last_id))
-            last_id += 1
-
-        self.redis.set("last_id", last_id)
-
-        return ids.tolist()
-
-    def remove(self, name: str) -> None:
+    def remove(self, storage_name: str, index_name: str, name: str) -> None:
         """Remove an image from the index database."""
 
-        key = self.redis.get(name).decode("utf-8")
-        label = int(key)
-        id_selector = faiss.IDSelectorRange(label, label + 1)
-
-        self.index = faiss.index_gpu_to_cpu(self.index) if self.gpu else self.index
-        self.index.remove_ids(id_selector)
-
-        if self.gpu:
-            self.resources = faiss.StandardGpuResources()
-            self.index = faiss.index_cpu_to_gpu(self.resources, 0, self.index)
-
-        self.save()
-        self.redis.delete(key)
-        self.redis.delete(name)
-
-    def index_image(self, model: Model, image: torch.Tensor, filename: str) -> None:
-        """Index an image."""
-
-        # Create a dataset of one image
-        inputs = torch.unsqueeze(image, dim=0)
-
-        with torch.no_grad():
-            outputs = model(inputs.to(model.device)).cpu().numpy()
-
-        self.add(outputs, [filename])
-        self.save()
+        self.redis.delete(f"{storage_name}:{index_name}:{name}")
 
     def search_similar_images(
         self,

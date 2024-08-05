@@ -18,6 +18,9 @@ from fastapi.responses import JSONResponse
 from PIL import Image
 from torchvision import transforms
 
+from cbir.retrieval.indexer import Indexer
+from cbir.retrieval.retrieval import ImageRetrieval
+
 router = APIRouter()
 
 
@@ -57,22 +60,19 @@ async def index_image(
             detail=f"Storage '{storage_name}' not found.",
         )
 
+    content = await image.read()
+
     model = request.app.state.model
 
-    content = await image.read()
-    features_extraction = transforms.Compose(
-        [
-            transforms.Resize((224, 224)),
-            transforms.ToTensor(),
-            transforms.Normalize(mean=[0.485, 0.456, 0.406], std=[0.229, 0.224, 0.225]),
-        ]
+    indexer = Indexer(
+        database.settings.data_path,
+        model.n_features,
+        database.settings.gpu,
     )
 
-    ids = database.index_image(
-        model,
-        features_extraction(Image.open(BytesIO(content))),
-        image.filename,
-    )
+    retrieval = ImageRetrieval(database, indexer)
+
+    ids = retrieval.index_image(model, content, image.filename)
 
     return JSONResponse(
         content={

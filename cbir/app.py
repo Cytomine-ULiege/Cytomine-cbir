@@ -40,9 +40,9 @@ def load_model(settings: ModelSetting) -> Model:
     return model
 
 
-def init_database(model: Model, settings: DatabaseSetting) -> Database:
+def init_database(settings: DatabaseSetting) -> Database:
     """Initialise the database."""
-    return Database(settings, model.n_features, gpu=model.device.type == "cuda")
+    return Database(settings)
 
 
 @asynccontextmanager
@@ -51,10 +51,7 @@ async def lifespan(local_app: FastAPI) -> AsyncGenerator[None, None]:
 
     # Initialisation
     local_app.state.model = load_model(ModelSetting.get_settings())
-    local_app.state.database = init_database(
-        local_app.state.model,
-        DatabaseSetting.get_settings(),
-    )
+    local_app.state.database = init_database(DatabaseSetting.get_settings())
 
     yield
 

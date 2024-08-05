@@ -1,13 +1,9 @@
 """Image API"""
 
 import json
-import os
 from io import BytesIO
 from pathlib import Path
 
-import faiss
-import numpy
-import torch
 from fastapi import (
     APIRouter,
     File,
@@ -30,7 +26,7 @@ async def index_image(
     request: Request,
     image: UploadFile,
     storage_name: str = Query(alias="storage"),
-    index_name: str = Query(alias="index"),
+    index_name: str = Query(default="index", alias="index"),
 ) -> JSONResponse:
     """
     Index the given image into the specified storage and index.
@@ -72,33 +68,13 @@ async def index_image(
         ]
     )
 
-    image = Image.open(BytesIO(content)).convert("RGB")
-    inputs = features_extraction(image)
-
-    # Create a dataset of one image
-    inputs = torch.unsqueeze(inputs, dim=0)
-
-    with torch.no_grad():
-        outputs = model(inputs.to(model.device)).cpu().numpy()
-
-    last_id = int(database.redis.get("last_id").decode("utf-8"))
-    index = database.get_index(index_name, storage_name)
-    index.add_with_ids(
-        outputs,
-        numpy.arange(last_id, last_id + outputs.shape[0]),
+    ids = database.index_image(
+        model,
+        features_extraction(Image.open(BytesIO(content))),
+        image.filename,
     )
 
-    index_path = os.path.join(
-        database.settings.data_path,
-        storage_name,
-        index_name,
-    )
-    faiss.write_index(index, index_path)
-
-    last_id += 1
-    database.redis.set("last_id", last_id)
-
-    return JSONResponse(content={"id": last_id - 1})
+    return JSONResponse(content={"ids": ids, "index": index_name})
 
 
 @router.delete("/images/{filename}")

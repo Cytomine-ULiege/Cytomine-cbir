@@ -101,32 +101,6 @@ async def index_image(
     return JSONResponse(content={"id": last_id - 1})
 
 
-@router.post("/images/index")
-async def index_image(request: Request, image: UploadFile = File()) -> None:
-    """Index the given image."""
-
-    if image.filename is None:
-        raise HTTPException(status_code=404, detail="Image filename not found")
-
-    database = request.app.state.database
-    model = request.app.state.model
-
-    content = await image.read()
-    features_extraction = transforms.Compose(
-        [
-            transforms.Resize((224, 224)),
-            transforms.ToTensor(),
-            transforms.Normalize(mean=[0.485, 0.456, 0.406], std=[0.229, 0.224, 0.225]),
-        ]
-    )
-
-    database.index_image(
-        model,
-        features_extraction(Image.open(BytesIO(content))),
-        image.filename,
-    )
-
-
 @router.delete("/images/remove")
 def remove_image(request: Request, filename: str) -> None:
     """Remove an indexed image."""

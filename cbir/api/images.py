@@ -73,10 +73,10 @@ async def index_image(
     )
 
     image = Image.open(BytesIO(content)).convert("RGB")
-    image = features_extraction(image)
+    inputs = features_extraction(image)
 
     # Create a dataset of one image
-    inputs = torch.unsqueeze(image, dim=0)
+    inputs = torch.unsqueeze(inputs, dim=0)
 
     with torch.no_grad():
         outputs = model(inputs.to(model.device)).cpu().numpy()

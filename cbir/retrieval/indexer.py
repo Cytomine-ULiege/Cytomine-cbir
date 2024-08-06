@@ -11,67 +11,49 @@ import torch
 class Indexer:
     """Indexer class for indexing images and their features."""
 
-    def __init__(self, data_path: str, n_features: int, gpu: bool = False) -> None:
+    def __init__(
+        self,
+        data_path: str,
+        storage_name: str,
+        index_name: str,
+        n_features: int,
+        gpu: bool = False,
+    ) -> None:
         """
         Indexer initialisation.
 
         Args:
             data_path (str): Path to the base storage.
             n_features (int): Number of features in the index.
-            gpu (bool): Whether to use GPU for indexing or not.
-        """
-        self.data_path = data_path
-        self.n_features = n_features
-
-        if gpu:
-            self.resources = faiss.StandardGpuResources()
-
-    def index(self, storage_name: str, index_name: str) -> faiss.Index:
-        """
-        Get the Faiss index for the given storage.
-
-        Args:
             storage_name (str): The name of the storage.
             index_name (str): The name of the index.
-
-        Returns:
-            faiss.Index: The Faiss index.
+            gpu (bool): Whether to use GPU for indexing or not.
         """
 
-        index_path = os.path.join(self.data_path, storage_name, index_name)
+        self.n_features = n_features
+        self.gpu = gpu
 
-        if os.path.isfile(index_path):
-            index = faiss.read_index(index_path)
+        self.index_path = os.path.join(data_path, storage_name, index_name)
+
+        if os.path.isfile(self.index_path):
+            self.index = faiss.read_index(self.index_path)
         else:
-            index = faiss.IndexFlatL2(self.n_features)
-            index = faiss.IndexIDMap(index)
+            self.index = faiss.IndexFlatL2(n_features)
+            self.index = faiss.IndexIDMap(self.index)
 
         if self.gpu:
-            return faiss.index_cpu_to_gpu(self.resources, 0, index)
+            self.resources = faiss.StandardGpuResources()
+            self.index = faiss.index_cpu_to_gpu(self.resources, 0, self.index)
 
-        return index
+    def save(self) -> None:
+        """Save the index to a file."""
 
-    def save(self, storage_name: str, index_name: str) -> None:
-        """
-        Save the index to the file.
-
-        Args:
-            index (faiss.Index): The Faiss index.
-        """
-
-        index = self.index(storage_name, index_name)
         index = faiss.index_gpu_to_cpu(self.index) if self.gpu else self.index
-        faiss.write_index(index, self.data_path)
+        faiss.write_index(index, self.index_path)
 
-    def add(
-        self,
-        last_id: int,
-        storage_name: str,
-        index_name: str,
-        images: torch.Tensor,
-    ) -> List[int]:
+    def add(self, last_id: int, images: torch.Tensor) -> List[int]:
         """
-        Index the given images in the provided index.
+        Index the given images in the index.
 
         Args:
             last_id (int): The last ID in the index.
@@ -82,32 +64,31 @@ class Indexer:
         """
 
         ids = np.arange(last_id, last_id + images.shape[0])
-
-        index = self.index(storage_name, index_name)
-        index.add_with_ids(images, ids)
-
-        self.save(storage_name, index_name)
+        self.index.add_with_ids(images, ids)
+        self.save()
 
         return ids.tolist()
 
-    def remove(self, storage_name: str, index_name: str, id: int) -> None:
+    def remove(self, label: int) -> None:
         """
         Remove an image from the given index.
 
         Args:
-            index (faiss.Index): The Faiss index.
-            id (int): The ID of the image to be removed.
+            label (int): The ID of the image to be removed.
         """
 
-        id_selector = faiss.IDSelectorRange(id, id + 1)
+        id_selector = faiss.IDSelectorRange(label, label + 1)
 
-        index = self.index(storage_name, index_name)
-        index = faiss.index_gpu_to_cpu(index) if self.gpu else index
+        index = faiss.index_gpu_to_cpu(self.index) if self.gpu else self.index
         index.remove_ids(id_selector)
 
-        self.save(storage_name, index_name)
+        self.save()
 
-    def search(self, image: np.array, nrt_neigh: int) -> Tuple[List[str], List[float]]:
+    def search(
+        self,
+        image: np.ndarray,
+        nrt_neigh: int,
+    ) -> Tuple[List[str], List[float]]:
         """
         Search similar images given a query image.
 
@@ -116,7 +97,7 @@ class Indexer:
             nrt_neigh (int): The number of nearest neighbours to search.
 
         Returns:
-            Tuple[List[str], List[float]]: A tuple containing the list of image IDs and their distances
+            Tuple[List[str], List[float]]: the list of image IDs and their distances
         """
 
         distances, labels = self.index.search(image, nrt_neigh)

@@ -70,9 +70,11 @@ def test_retrieve_one_image() -> None:
 def test_remove_image_not_found() -> None:
     """Test remove an image that do not exist in the database."""
 
-    filename = "notfound.png"
     with TestClient(app) as client:
-        response = client.delete(f"/api/images/{filename}")
+        response = client.delete(
+            "/api/images/notfound.png",
+            params={"storage": "storage"},
+        )
 
     assert response.status_code == 404, response.json()
 

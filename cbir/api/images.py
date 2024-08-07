@@ -51,7 +51,10 @@ async def index_image(
     """
 
     if image.filename is None:
-        raise HTTPException(status_code=404, detail="Image filename not found")
+        raise HTTPException(status_code=404, detail="Image filename not found!")
+
+    if retrieval.store.contains(image.filename):
+        raise HTTPException(status_code=409, detail="Image filename already exist!")
 
     if not storage_name:
         raise HTTPException(status_code=404, detail="Storage is required")

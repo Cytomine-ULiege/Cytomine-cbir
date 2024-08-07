@@ -18,22 +18,20 @@ def app() -> Generator[Any, Any, Any]:
 
     The application is configured with:
     - A router included in the FastAPI instance.
-    - A mock database with temporary settings stored in a temporary directory.
 
     Yields:
-        local_app: The FastAPI app instance with router and mock database.
+        local_app: The FastAPI app instance with router.
     """
 
     local_app = FastAPI()
     local_app.include_router(router)
 
     settings = type("Settings", (object,), {"data_path": tempfile.mkdtemp()})
-    local_app.state.database = type("Database", (object,), {"settings": settings})
 
     yield local_app
 
     # Cleanup after tests
-    shutil.rmtree(local_app.state.database.settings.data_path)  # type: ignore
+    shutil.rmtree(settings.data_path)  # type: ignore
 
 
 @pytest.fixture

@@ -2,28 +2,23 @@
 
 from io import BytesIO
 from typing import List
+
 import torch
+from PIL import Image
+from torchvision import transforms
 
 from cbir.models.model import Model
-from cbir.retrieval.database import Database
 from cbir.retrieval.indexer import Indexer
-from torchvision import transforms
-from PIL import Image
+from cbir.retrieval.store import Store
 
 
 class ImageRetrieval:
-    def __init__(self, database: Database, indexer: Indexer) -> None:
+    def __init__(self, store: Store, indexer: Indexer) -> None:
         """Image retrieval initialisation."""
-        self.database = database
+        self.store = store
         self.indexer = indexer
 
-    def index_image(
-        self,
-        model: Model,
-        image: torch.Tensor,
-        storage_name: str,
-        index_name: str,
-    ) -> List[int]:
+    def index_image(self, model: Model, image: bytes) -> List[int]:
         """Index an image."""
 
         features_extraction = transforms.Compose(
@@ -37,14 +32,14 @@ class ImageRetrieval:
         )
 
         # Create a dataset of one image
-        inputs = features_extraction(Image.open(BytesIO(image)))
-        inputs = torch.unsqueeze(image, dim=0)
+        inputs = features_extraction(Image.open(BytesIO(image)).convert("RGB"))
+        inputs = torch.unsqueeze(inputs, dim=0)
 
         with torch.no_grad():
             outputs = model(inputs.to(model.device)).cpu().numpy()
 
-        last_id = self.database.get_last_id(storage_name, index_name)
-        ids = self.indexer.add(last_id, storage_name, index_name, outputs)
+        last_id = self.store.last()
+        ids = self.indexer.add(last_id, outputs)
 
         return ids
 

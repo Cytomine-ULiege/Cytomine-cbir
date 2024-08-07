@@ -6,6 +6,7 @@ from pathlib import Path
 
 from fastapi import (
     APIRouter,
+    Depends,
     File,
     Form,
     HTTPException,
@@ -18,7 +19,8 @@ from fastapi.responses import JSONResponse
 from PIL import Image
 from torchvision import transforms
 
-from cbir.retrieval.indexer import Indexer
+from cbir.api.utils.utils import get_retrieval
+from cbir.config import DatabaseSetting
 from cbir.retrieval.retrieval import ImageRetrieval
 
 router = APIRouter()
@@ -28,8 +30,10 @@ router = APIRouter()
 async def index_image(
     request: Request,
     image: UploadFile,
-    storage_name: str = Query(alias="storage"),
+    storage_name: str = Query(..., alias="storage"),
     index_name: str = Query(default="index", alias="index"),
+    retrieval: ImageRetrieval = Depends(get_retrieval),
+    settings: DatabaseSetting = Depends(DatabaseSetting.get_settings),
 ) -> JSONResponse:
     """
     Index the given image into the specified storage and index.
@@ -39,6 +43,8 @@ async def index_image(
         image (UploadFile): The image file to be indexed.
         storage_name (str): The name of the storage where the index is stored.
         index_name (str): The name of the index where the image features will be added.
+        retrieval (ImageRetrieval): The image retrieval object.
+        settings (DatabaseSetting): The database settings.
 
     Returns:
         JSONResponse: A JSON response containing the ID of the newly indexed image.
@@ -50,9 +56,7 @@ async def index_image(
     if not storage_name:
         raise HTTPException(status_code=404, detail="Storage is required")
 
-    database = request.app.state.database
-
-    base_path = Path(database.settings.data_path)
+    base_path = Path(settings.data_path)
     storage_path = base_path / storage_name
     if not storage_path.is_dir():
         raise HTTPException(
@@ -64,15 +68,7 @@ async def index_image(
 
     model = request.app.state.model
 
-    indexer = Indexer(
-        database.settings.data_path,
-        model.n_features,
-        database.settings.gpu,
-    )
-
-    retrieval = ImageRetrieval(database, indexer)
-
-    ids = retrieval.index_image(model, content, image.filename)
+    ids = retrieval.index_image(model, content)
 
     return JSONResponse(
         content={

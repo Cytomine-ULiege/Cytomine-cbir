@@ -29,7 +29,7 @@ class Store:
 
         self.prefix = f"{self.storage_name}:{self.index_name}"
 
-    def get(self, key: str) -> Optional[int]:
+    def get(self, key: str) -> Optional[str]:
         """
         Retrieves the value associated with the given key.
 
@@ -37,18 +37,18 @@ class Store:
             key (str): The key whose value is to be retrieved.
 
         Returns:
-            Optional[int]: The value for the given key, or None if it does not exist.
+            Optional[str]: The value for the given key, or None if it does not exist.
         """
         value = self.redis.get(f"{self.prefix}:{key}")
-        return int(value) if value is not None else None
+        return value.decode("UTF-8") if value is not None else None
 
-    def set(self, key: str, value: int) -> None:
+    def set(self, key: str, value: str) -> None:
         """
         Sets the value for the specified key in the Redis database.
 
         Args:
             key (str): The key for which the value is to be set.
-            value (int): The value to be set for the specified key.
+            value (str): The value to be set for the specified key.
         """
         self.redis.set(f"{self.prefix}:{key}", value)
 

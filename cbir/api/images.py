@@ -1,23 +1,16 @@
 """Image API"""
 
-import json
-from io import BytesIO
 from pathlib import Path
 
 from fastapi import (
     APIRouter,
     Depends,
-    File,
-    Form,
     HTTPException,
     Query,
     Request,
-    Response,
     UploadFile,
 )
 from fastapi.responses import JSONResponse
-from PIL import Image
-from torchvision import transforms
 
 from cbir.api.utils.utils import get_retrieval
 from cbir.config import DatabaseSetting
@@ -119,29 +112,41 @@ def remove_image(
 @router.post("/images/retrieve")
 async def retrieve_image(
     request: Request,
-    nrt_neigh: int = Form(),
-    image: UploadFile = File(),
-) -> Response:
-    """Retrieve similar images from the database."""
+    image: UploadFile,
+    nrt_neigh: int = Query(...),
+    storage_name: str = Query(..., alias="storage"),
+    index_name: str = Query(default="index", alias="index"),
+    retrieval: ImageRetrieval = Depends(get_retrieval),
+) -> JSONResponse:
+    """
+    Retrieve similar images from the database.
 
-    database = request.app.state.database
+    Args:
+        request (Request): The incoming HTTP request.
+        image (UploadFile): The query image.
+        nrt_neigh (int): The number of nearest neighbors to retrieve.
+        storage_name (str): The name of the storage where the index is stored.
+        index_name (str): The name of the index where the image features will be added.
+        retrieval (ImageRetrieval): The image retrieval object.
+
+    Returns:
+        JSONResponse: A JSON containing the list of filenames and their distances.
+    """
+
+    if not storage_name:
+        raise HTTPException(status_code=404, detail="Storage is required")
+
     model = request.app.state.model
-
     content = await image.read()
-    features_extraction = transforms.Compose(
-        [
-            transforms.Resize((224, 224)),
-            transforms.ToTensor(),
-            transforms.Normalize(mean=[0.485, 0.456, 0.406], std=[0.229, 0.224, 0.225]),
-        ]
-    )
 
-    filenames, distances = database.search_similar_images(
-        model,
-        features_extraction(Image.open(BytesIO(content))),
-        nrt_neigh=nrt_neigh,
-    )
+    filenames, distances = retrieval.search(model, content, nrt_neigh)
 
-    return Response(
-        content=json.dumps({"filenames": filenames, "distances": distances}),
+    return JSONResponse(
+        content={
+            "query": image.filename,
+            "storage": storage_name,
+            "index": index_name,
+            "filenames": filenames,
+            "distances": distances,
+        }
     )

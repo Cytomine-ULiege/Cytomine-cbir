@@ -13,13 +13,30 @@ from cbir.retrieval.store import Store
 
 
 class ImageRetrieval:
+    """Image retrieval class."""
+
     def __init__(self, store: Store, indexer: Indexer) -> None:
-        """Image retrieval initialisation."""
+        """
+        Image retrieval initialisation.
+
+        Args:
+            store (Store): The store object.
+            indexer (Indexer): The indexer object.
+        """
         self.store = store
         self.indexer = indexer
 
     def index_image(self, model: Model, image: bytes) -> List[int]:
-        """Index an image."""
+        """
+        Index an image.
+
+        Args:
+            model (Model): The model to extract features.
+            image (bytes): The image to be indexed.
+
+        Returns:
+            List[int]: The IDs of the indexed images.
+        """
 
         features_extraction = transforms.Compose(
             [
@@ -46,20 +63,18 @@ class ImageRetrieval:
 
     def remove_image(
         self,
-        name,
+        name: str,
         storage_name: str,
         index_name: str,
-    ):
+    ) -> None:
         """Remove an image."""
-        pass
 
     def search(
         self,
         model: Model,
-        nrt_neigh,
-        features,
+        nrt_neigh: int,
+        features: int,
         storage_name: str,
         index_name: str,
-    ):
+    ) -> None:
         """Search for similar images."""
-        pass

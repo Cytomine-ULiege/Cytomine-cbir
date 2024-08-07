@@ -1,5 +1,7 @@
+"""Utility functions for dependency injection."""
+
 from fastapi import Depends, Query
-from redis import Redis
+from redis import Redis  # type: ignore
 
 from cbir.config import DatabaseSetting, ModelSetting
 from cbir.retrieval.indexer import Indexer
@@ -13,6 +15,17 @@ def get_store(
     index_name: str = Query(default="index", alias="index"),
     redis: Redis = Depends(get_redis),
 ) -> Store:
+    """
+    Instantiate a Store object.
+
+    Args:
+        storage_name (str): The name of the storage.
+        index_name (str): The name of the index.
+        redis (Redis): An instance of the Redis client.
+
+    Returns:
+        Store: An instance of the Store.
+    """
     return Store(storage_name, redis, index_name)
 
 
@@ -22,6 +35,18 @@ def get_indexer(
     database_settings: DatabaseSetting = Depends(DatabaseSetting.get_settings),
     model_settings: ModelSetting = Depends(ModelSetting.get_settings),
 ) -> Indexer:
+    """
+    Instantiate an Indexer object.
+
+    Args:
+        storage_name (str): The name of the storage.
+        index_name (str): The name of the index.
+        database_settings (DatabaseSetting): The database settings.
+        model_settings (ModelSetting): The model settings.
+
+    Returns:
+        Indexer: An instance of the Indexer.
+    """
     return Indexer(
         database_settings.data_path,
         storage_name,
@@ -35,4 +60,14 @@ def get_retrieval(
     store: Store = Depends(get_store),
     indexer: Indexer = Depends(get_indexer),
 ) -> ImageRetrieval:
+    """
+    Instantiate an ImageRetrieval object.
+
+    Args:
+        store (Store): An instance of the Store.
+        indexer (Indexer): An instance of the Indexer.
+
+    Returns:
+        ImageRetrieval: An instance of the ImageRetrieval.
+    """
     return ImageRetrieval(store, indexer)

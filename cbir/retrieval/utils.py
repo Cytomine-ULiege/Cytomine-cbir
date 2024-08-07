@@ -1,3 +1,5 @@
+"""Utility functions for the retrieval module."""
+
 from fastapi import Depends
 from redis import Redis  # type: ignore
 

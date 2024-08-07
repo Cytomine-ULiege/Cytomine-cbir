@@ -16,8 +16,8 @@
 
 import os
 
-from fastapi.testclient import TestClient
 import pytest
+from fastapi.testclient import TestClient
 
 from cbir.app import app
 from cbir.config import DatabaseSetting

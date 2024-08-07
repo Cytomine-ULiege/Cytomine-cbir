@@ -1,5 +1,7 @@
 """Store module"""
 
+from typing import Optional
+
 from redis import Redis  # type: ignore
 
 
@@ -27,7 +29,7 @@ class Store:
 
         self.prefix = f"{self.storage_name}:{self.index_name}"
 
-    def get(self, key: str) -> str:
+    def get(self, key: str) -> Optional[int]:
         """
         Retrieves the value associated with the given key.
 
@@ -35,9 +37,10 @@ class Store:
             key (str): The key whose value is to be retrieved.
 
         Returns:
-            str: The value for the given key.
+            Optional[int]: The value for the given key, or None if it does not exist.
         """
-        return self.redis.get(f"{self.prefix}:{key}")
+        value = self.redis.get(f"{self.prefix}:{key}")
+        return int(value) if value is not None else None
 
     def set(self, key: str, value: str) -> None:
         """
@@ -49,14 +52,14 @@ class Store:
         """
         self.redis.set(f"{self.prefix}:{key}", value)
 
-    def last(self) -> str:
+    def last(self) -> int:
         """
         Retrieves the value of the key "last_id".
 
         Returns:
-            str: The value of the "last_id" key, or "0" if the key does not exist.
+            int: The value of the "last_id" key, or 0 if the key does not exist.
         """
-        return self.get("last_id") or "0"
+        return int(self.get("last_id") or "0")
 
     def contains(self, key: str) -> bool:
         """

@@ -34,10 +34,6 @@ class DatabaseSetting(BaseSettings):
         """Get the settings."""
         return DatabaseSetting()
 
-    def get_database_path(self) -> str:
-        """Get the database path."""
-        return os.path.join(self.data_path, self.filename)
-
 
 class ModelSetting(BaseSettings):
     """Model settings."""

@@ -1,7 +1,7 @@
 """Image retrieval methods."""
 
 from io import BytesIO
-from typing import List
+from typing import List, Optional
 
 import torch
 from PIL import Image
@@ -26,13 +26,14 @@ class ImageRetrieval:
         self.store = store
         self.indexer = indexer
 
-    def index_image(self, model: Model, image: bytes) -> List[int]:
+    def index_image(self, model: Model, image: bytes, filename: str) -> List[int]:
         """
         Index an image.
 
         Args:
             model (Model): The model to extract features.
             image (bytes): The image to be indexed.
+            filename (str): The name of the image.
 
         Returns:
             List[int]: The IDs of the indexed images.
@@ -57,17 +58,30 @@ class ImageRetrieval:
 
         last_id = self.store.last()
         ids = self.indexer.add(last_id, outputs)
+        self.store.set(filename, ids[-1])
         self.store.set("last_id", ids[-1] + 1)
 
         return ids
 
-    def remove_image(
-        self,
-        name: str,
-        storage_name: str,
-        index_name: str,
-    ) -> None:
-        """Remove an image."""
+    def remove_image(self, name: str) -> Optional[int]:
+        """
+        Remove an image.
+
+        Args:
+            name (str): The name of the image to be removed.
+
+        Returns:
+            Optional[int]: The ID of the removed image or None if it does not exist.
+        """
+
+        label = self.store.get(name)
+        if not label:
+            return None
+
+        self.indexer.remove(label)
+        self.store.remove(name)
+
+        return label
 
     def search(
         self,

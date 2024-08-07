@@ -68,7 +68,7 @@ async def index_image(
 
     model = request.app.state.model
 
-    ids = retrieval.index_image(model, content)
+    ids = retrieval.index_image(model, content, image.filename)
 
     return JSONResponse(
         content={
@@ -80,15 +80,37 @@ async def index_image(
 
 
 @router.delete("/images/{filename}")
-def remove_image(request: Request, filename: str) -> None:
-    """Remove an indexed image."""
+def remove_image(
+    filename: str,
+    storage_name: str = Query(..., alias="storage"),
+    index_name: str = Query(default="index", alias="index"),
+    retrieval: ImageRetrieval = Depends(get_retrieval),
+) -> JSONResponse:
+    """
+    Remove an indexed image.
 
-    database = request.app.state.database
+    Args:
+        filename (str): The name of the image to be removed.
+        storage_name (str): The name of the storage where the index is stored.
+        index_name (str): The name of the index where the image features will be added.
+        retrieval (ImageRetrieval): The image retrieval object.
 
-    if not database.contains(filename):
+    Returns:
+        JSONResponse: A JSON response containing the ID of the deleted image.
+    """
+
+    if not retrieval.store.contains(filename):
         raise HTTPException(status_code=404, detail=f"{filename} not found")
 
-    database.remove(filename)
+    label = retrieval.remove_image(filename)
+
+    return JSONResponse(
+        content={
+            "id": label,
+            "storage": storage_name,
+            "index": index_name,
+        }
+    )
 
 
 @router.post("/images/retrieve")

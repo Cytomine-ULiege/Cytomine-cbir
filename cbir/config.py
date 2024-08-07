@@ -14,8 +14,6 @@
 
 """Environment parameters"""
 
-import os
-
 import torch
 from pydantic_settings import BaseSettings
 

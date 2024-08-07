@@ -42,13 +42,13 @@ class Store:
         value = self.redis.get(f"{self.prefix}:{key}")
         return int(value) if value is not None else None
 
-    def set(self, key: str, value: str) -> None:
+    def set(self, key: str, value: int) -> None:
         """
         Sets the value for the specified key in the Redis database.
 
         Args:
             key (str): The key for which the value is to be set.
-            value (str): The value to be set for the specified key.
+            value (int): The value to be set for the specified key.
         """
         self.redis.set(f"{self.prefix}:{key}", value)
 

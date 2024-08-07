@@ -40,6 +40,7 @@ class ImageRetrieval:
 
         last_id = self.store.last()
         ids = self.indexer.add(last_id, outputs)
+        self.store.set("last_id", ids[-1] + 1)
 
         return ids
 

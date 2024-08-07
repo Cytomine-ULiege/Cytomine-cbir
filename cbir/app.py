@@ -22,10 +22,9 @@ from fastapi import FastAPI
 
 from cbir import __version__
 from cbir.api import images, storages
-from cbir.config import DatabaseSetting, ModelSetting
+from cbir.config import ModelSetting
 from cbir.models.model import Model
 from cbir.models.resnet import Resnet
-from cbir.retrieval.database import Database
 
 
 def load_model(settings: ModelSetting) -> Model:
@@ -40,18 +39,12 @@ def load_model(settings: ModelSetting) -> Model:
     return model
 
 
-def init_database(settings: DatabaseSetting) -> Database:
-    """Initialise the database."""
-    return Database(settings)
-
-
 @asynccontextmanager
 async def lifespan(local_app: FastAPI) -> AsyncGenerator[None, None]:
     """Lifespan of the app."""
 
     # Initialisation
     local_app.state.model = load_model(ModelSetting.get_settings())
-    local_app.state.database = init_database(DatabaseSetting.get_settings())
 
     yield
 

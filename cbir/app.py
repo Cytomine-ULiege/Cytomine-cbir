@@ -22,12 +22,12 @@ from fastapi import FastAPI
 
 from cbir import __version__
 from cbir.api import images, storages
-from cbir.config import ModelSetting
+from cbir.config import Settings, get_settings
 from cbir.models.model import Model
 from cbir.models.resnet import Resnet
 
 
-def load_model(settings: ModelSetting) -> Model:
+def load_model(settings: Settings) -> Model:
     """Load the weights of the model."""
 
     state = torch.load(settings.weights, map_location=settings.device)
@@ -44,7 +44,7 @@ async def lifespan(local_app: FastAPI) -> AsyncGenerator[None, None]:
     """Lifespan of the app."""
 
     # Initialisation
-    local_app.state.model = load_model(ModelSetting.get_settings())
+    local_app.state.model = load_model(get_settings())
 
     yield
 

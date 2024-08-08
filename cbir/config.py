@@ -18,30 +18,30 @@ import torch
 from pydantic_settings import BaseSettings
 
 
-class DatabaseSetting(BaseSettings):
-    """Database settings."""
+class Settings(BaseSettings):
+    """Configurable settings."""
 
+    # Faiss index
     filename: str = "db"
     data_path: str = "/data"
+
+    # Database
     host: str = "localhost"
     port: int = 6379
     db: int = 0
 
-    @staticmethod
-    def get_settings() -> "DatabaseSetting":
-        """Get the settings."""
-        return DatabaseSetting()
-
-
-class ModelSetting(BaseSettings):
-    """Model settings."""
-
+    # Deep learning model
     device: torch.device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
     extractor: str = "resnet"
     n_features: int = 128
     weights: str = f"/weights/{extractor}"
 
-    @staticmethod
-    def get_settings() -> "ModelSetting":
-        """Get the settings."""
-        return ModelSetting()
+
+def get_settings() -> Settings:
+    """
+    Get the settings.
+
+    Returns:
+        (Settings): The environment settings.
+    """
+    return Settings()

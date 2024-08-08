@@ -7,9 +7,24 @@ from typing import Generator
 import pytest
 from fastapi import FastAPI
 from fastapi.testclient import TestClient
+from redis import Redis  # type: ignore
 
 from cbir import app as main
 from cbir import config
+
+
+@pytest.fixture(scope="function", autouse=True)
+def redis_client() -> Generator[Redis, None, None]:
+    """
+    Provide a Redis client for testing and clean up afterward.
+
+    Yields:
+        Redis: A Redis client instance.
+    """
+
+    client = Redis(host="localhost", port=6379, db=1)
+    yield client
+    client.flushdb()
 
 
 @pytest.fixture(scope="function")
@@ -20,10 +35,9 @@ def test_directory() -> Generator[str, None, None]:
     Yields:
         str: The path to the temporary directory.
     """
+
     tmp_directory = tempfile.mkdtemp()
-
     yield tmp_directory
-
     shutil.rmtree(tmp_directory)
 
 
@@ -37,7 +51,7 @@ def get_settings(test_directory: str) -> config.Settings:
     Returns:
         (Settings): The test environment settings.
     """
-    return config.Settings(data_path=test_directory)
+    return config.Settings(data_path=test_directory, db=1)
 
 
 @pytest.fixture

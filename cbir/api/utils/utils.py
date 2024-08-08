@@ -3,7 +3,7 @@
 from fastapi import Depends, Query
 from redis import Redis  # type: ignore
 
-from cbir.config import DatabaseSetting, ModelSetting
+from cbir.config import Settings, get_settings
 from cbir.retrieval.indexer import Indexer
 from cbir.retrieval.retrieval import ImageRetrieval
 from cbir.retrieval.store import Store
@@ -32,8 +32,7 @@ def get_store(
 def get_indexer(
     storage_name: str = Query(..., alias="storage"),
     index_name: str = Query(default="index", alias="index"),
-    database_settings: DatabaseSetting = Depends(DatabaseSetting.get_settings),
-    model_settings: ModelSetting = Depends(ModelSetting.get_settings),
+    settings: Settings = Depends(get_settings),
 ) -> Indexer:
     """
     Instantiate an Indexer object.
@@ -41,18 +40,17 @@ def get_indexer(
     Args:
         storage_name (str): The name of the storage.
         index_name (str): The name of the index.
-        database_settings (DatabaseSetting): The database settings.
-        model_settings (ModelSetting): The model settings.
+        settings (Settings): The app settings.
 
     Returns:
         Indexer: An instance of the Indexer.
     """
     return Indexer(
-        database_settings.data_path,
+        settings.data_path,
         storage_name,
         index_name,
-        model_settings.n_features,
-        model_settings.device.type == "cuda",
+        settings.n_features,
+        settings.device.type == "cuda",
     )
 
 

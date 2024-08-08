@@ -7,20 +7,18 @@ from fastapi import APIRouter, Depends, HTTPException
 from fastapi.responses import JSONResponse
 
 from cbir.api.utils.models import Storage
-from cbir.config import DatabaseSetting
+from cbir.config import Settings, get_settings
 
 router = APIRouter()
 
 
 @router.get("/storages")
-def get_storages(
-    settings: DatabaseSetting = Depends(DatabaseSetting.get_settings),
-) -> JSONResponse:
+def get_storages(settings: Settings = Depends(get_settings)) -> JSONResponse:
     """
     Get all storages.
 
     Args:
-        settings (DatabaseSetting): The database settings.
+        settings (Settings): The database settings.
 
     Returns:
         JSONResponse: A JSON response containing the list of storage names.
@@ -41,14 +39,14 @@ def get_storages(
 @router.post("/storages")
 async def create_storage(
     body: Storage,
-    settings: DatabaseSetting = Depends(DatabaseSetting.get_settings),
+    settings: Settings = Depends(get_settings),
 ) -> JSONResponse:
     """
     Create a new storage.
 
     Args:
         body (Storage): The body of the request.
-        settings (DatabaseSetting): The database settings.
+        settings (Settings): The database settings.
 
     Returns:
         JSONResponse: A JSON response containing the message of the creation.
@@ -77,14 +75,14 @@ async def create_storage(
 @router.get("/storages/{name}")
 async def get_storage(
     name: str,
-    settings: DatabaseSetting = Depends(DatabaseSetting.get_settings),
+    settings: Settings = Depends(get_settings),
 ) -> JSONResponse:
     """
     Get a specific storage.
 
     Args:
         name (str): The name of the storage.
-        settings (DatabaseSetting): The database settings.
+        settings (Settings): The database settings.
 
     Returns:
         JSONResponse: A JSON response containing the name of the storage.
@@ -105,14 +103,14 @@ async def get_storage(
 @router.delete("/storages/{name}")
 async def delete_storage(
     name: str,
-    settings: DatabaseSetting = Depends(DatabaseSetting.get_settings),
+    settings: Settings = Depends(get_settings),
 ) -> JSONResponse:
     """
     Delete a specific storage and its content.
 
     Args:
         name (str): The name of the storage to delete.
-        settings (DatabaseSetting): The database settings.
+        settings (Settings): The database settings.
 
     Returns:
         JSONResponse: A JSON response containing the message of the deletion.

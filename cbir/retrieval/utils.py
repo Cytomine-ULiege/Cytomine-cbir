@@ -3,18 +3,16 @@
 from fastapi import Depends
 from redis import Redis  # type: ignore
 
-from cbir.config import DatabaseSetting
+from cbir.config import Settings, get_settings
 from cbir.retrieval.indexer import Indexer
 
 
-def get_redis(
-    settings: DatabaseSetting = Depends(DatabaseSetting.get_settings),
-) -> Redis:
+def get_redis(settings: Settings = Depends(get_settings)) -> Redis:
     """
     Get the Redis client.
 
     Args:
-        settings (DatabaseSetting): The database settings.
+        settings (Settings): The database settings.
 
     Returns:
         Redis: The Redis client.

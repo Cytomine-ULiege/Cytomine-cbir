@@ -13,7 +13,7 @@ from fastapi import (
 from fastapi.responses import JSONResponse
 
 from cbir.api.utils.utils import get_retrieval
-from cbir.config import DatabaseSetting
+from cbir.config import Settings, get_settings
 from cbir.retrieval.retrieval import ImageRetrieval
 
 router = APIRouter()
@@ -26,7 +26,7 @@ async def index_image(
     storage_name: str = Query(..., alias="storage"),
     index_name: str = Query(default="index", alias="index"),
     retrieval: ImageRetrieval = Depends(get_retrieval),
-    settings: DatabaseSetting = Depends(DatabaseSetting.get_settings),
+    settings: Settings = Depends(get_settings),
 ) -> JSONResponse:
     """
     Index the given image into the specified storage and index.

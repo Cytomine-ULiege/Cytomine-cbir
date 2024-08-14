@@ -124,6 +124,4 @@ class ImageRetrieval:
         labels, distances = self.indexer.search(outputs, nrt_neigh)
         filenames = [self.store.get(str(l)) or "" for l in labels]
 
-        return [
-            (filename, distance) for filename, distance in zip(filenames, distances)
-        ]
+        return list(zip(filenames, distances))

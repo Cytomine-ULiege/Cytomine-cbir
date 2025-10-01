@@ -1,5 +1,8 @@
 # Cytomine CBIR
 
+> [!WARNING]  
+> **Deprecated:** This repository is no longer maintained. Please see [cytomine/cytomine](https://github.com/cytomine/cytomine) for the latest version.
+
 Content Based Image Retrieval Server
 
 # Requirements
